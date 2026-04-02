@@ -256,6 +256,8 @@ export function getRankTitle(level: number): string {
   return 'E-Rank Hunter';
 }
 
+export { getWeekday };
+
 export function generateBoss(level: number): BossChallenge {
   const bosses = [
     { name: 'Iron Golem', description: 'Complete 7 consecutive workout days' },
