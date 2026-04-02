@@ -89,12 +89,68 @@ const DEFAULT_HABITS: HabitEntry[] = [
   { id: 'h4', name: 'Sleep by 11pm', category: 'wellness', streak: 0, lastCompleted: null, completedToday: false },
 ];
 
+const WEEKLY_WORKOUT_PLAN: Record<string, Omit<Quest, 'completed'>[]> = {
+  Monday: [
+    { id: 'workout-monday-barbell-squat', title: 'Barbell Squat (4×3–6)', category: 'fitness', xpReward: 35 },
+    { id: 'workout-monday-hack-squat', title: 'Hack Squat (3×8–10)', category: 'fitness', xpReward: 30 },
+    { id: 'workout-monday-leg-press', title: 'Leg Press (3×10–12)', category: 'fitness', xpReward: 30 },
+    { id: 'workout-monday-leg-extension', title: 'Leg Extension (3×12–15)', category: 'fitness', xpReward: 25 },
+    { id: 'workout-monday-seated-leg-curl', title: 'Seated Leg Curl (3×12–15)', category: 'fitness', xpReward: 25 },
+    { id: 'workout-monday-crunch', title: 'Crunches (3×12–15)', category: 'fitness', xpReward: 15 },
+    { id: 'workout-monday-hanging-leg-raises', title: 'Hanging Leg Raises (3×10–15)', category: 'fitness', xpReward: 15 },
+    { id: 'workout-monday-wrist-curls', title: 'Wrist Curls (3×15–20)', category: 'fitness', xpReward: 10 },
+  ],
+  Tuesday: [
+    { id: 'workout-tuesday-bench-press', title: 'Bench Press (4×4–6)', category: 'fitness', xpReward: 35 },
+    { id: 'workout-tuesday-incline-db-press', title: 'Incline DB Press (3×8–12)', category: 'fitness', xpReward: 30 },
+    { id: 'workout-tuesday-decline-press', title: 'Decline Press (3×6–8)', category: 'fitness', xpReward: 30 },
+    { id: 'workout-tuesday-chest-fly', title: 'Chest Fly (3×12–15)', category: 'fitness', xpReward: 25 },
+    { id: 'workout-tuesday-barbell-curl', title: 'Barbell Curl (3×8–12)', category: 'fitness', xpReward: 25 },
+    { id: 'workout-tuesday-hammer-curl', title: 'Hammer Curl (3×10–12)', category: 'fitness', xpReward: 20 },
+    { id: 'workout-tuesday-cable-preacher-curl', title: 'Cable/Preacher Curl (3×12–15)', category: 'fitness', xpReward: 20 },
+  ],
+  Wednesday: [
+    { id: 'workout-wednesday-deadlift', title: 'Deadlift (3×3–5)', category: 'fitness', xpReward: 40 },
+    { id: 'workout-wednesday-romanian-deadlift', title: 'Romanian Deadlift (3×8–12)', category: 'fitness', xpReward: 30 },
+    { id: 'workout-wednesday-lying-leg-curl', title: 'Lying Leg Curl (3×12–15)', category: 'fitness', xpReward: 25 },
+    { id: 'workout-wednesday-overhead-press', title: 'Overhead Press (3×6–10)', category: 'fitness', xpReward: 30 },
+    { id: 'workout-wednesday-db-shoulder-press', title: 'DB Shoulder Press (3×8–12)', category: 'fitness', xpReward: 25 },
+    { id: 'workout-wednesday-lateral-raises', title: 'Lateral Raises (3×15–20)', category: 'fitness', xpReward: 20 },
+    { id: 'workout-wednesday-rear-delt-fly', title: 'Rear Delt Fly (3×15–20)', category: 'fitness', xpReward: 20 },
+  ],
+  Thursday: [
+    { id: 'workout-thursday-lat-pulldown', title: 'Lat Pulldown (3×8–12)', category: 'fitness', xpReward: 25 },
+    { id: 'workout-thursday-barbell-row', title: 'Barbell Row (3×6–10)', category: 'fitness', xpReward: 30 },
+    { id: 'workout-thursday-db-row', title: 'DB Row (3×8–12)', category: 'fitness', xpReward: 25 },
+    { id: 'workout-thursday-hyperextensions', title: 'Hyperextensions (3×12–15)', category: 'fitness', xpReward: 20 },
+    { id: 'workout-thursday-skull-crushers', title: 'Skull Crushers (3×8–12)', category: 'fitness', xpReward: 25 },
+    { id: 'workout-thursday-rope-pushdown', title: 'Rope Pushdown (3×10–12)', category: 'fitness', xpReward: 20 },
+    { id: 'workout-thursday-overhead-db-extension', title: 'Overhead DB Extension (3×10–12)', category: 'fitness', xpReward: 20 },
+  ],
+  Friday: [
+    { id: 'workout-friday-front-squat', title: 'Front Squat (3×10–15)', category: 'fitness', xpReward: 30 },
+    { id: 'workout-friday-walking-lunges', title: 'Walking Lunges (3×12/leg)', category: 'fitness', xpReward: 25 },
+    { id: 'workout-friday-leg-extension', title: 'Leg Extension (3×15)', category: 'fitness', xpReward: 20 },
+    { id: 'workout-friday-lying-leg-curl', title: 'Lying Leg Curl (3×15)', category: 'fitness', xpReward: 20 },
+    { id: 'workout-friday-seated-calf-raise', title: 'Seated Calf Raise (4×15–20)', category: 'fitness', xpReward: 15 },
+    { id: 'workout-friday-standing-calf-raise', title: 'Standing Calf Raise (4×10–15)', category: 'fitness', xpReward: 15 },
+  ],
+};
+
+export function getWorkoutPlanForDay(day: string): Omit<Quest, 'completed'>[] {
+  return WEEKLY_WORKOUT_PLAN[day] || [];
+}
+
 function xpForLevel(level: number): number {
   return Math.floor(100 * Math.pow(1.3, level - 1));
 }
 
 function getToday(): string {
   return new Date().toISOString().split('T')[0];
+}
+
+function getWeekday(date: Date = new Date()): string {
+  return date.toLocaleDateString('en-US', { weekday: 'long' });
 }
 
 const STORAGE_KEY = 'solo-leveling-state';
@@ -130,6 +186,17 @@ export function loadState(): PlayerState {
         return { ...h, completedToday: false };
       });
 
+      // Add the day-specific workout quests each day (if not already present)
+      const todayWeekday = getWeekday();
+      const dailyWorkouts = getWorkoutPlanForDay(todayWeekday);
+      const existingQuestIds = new Set(state.quests.map(q => q.id));
+      const newWorkoutQuests = dailyWorkouts
+        .filter(q => !existingQuestIds.has(q.id))
+        .map(q => ({ ...q, completed: false }));
+      if (newWorkoutQuests.length > 0) {
+        state.quests = [...state.quests, ...newWorkoutQuests];
+      }
+
       if (state.lastLoginDate === yesterdayStr) {
         state.dayStreak += 1;
       } else {
@@ -149,7 +216,10 @@ export function loadState(): PlayerState {
     xpToNext: xpForLevel(1),
     stats: { str: 5, int: 5, agi: 5, vit: 5, wis: 5 },
     statPoints: 0,
-    quests: DEFAULT_QUESTS,
+    quests: [
+      ...DEFAULT_QUESTS,
+      ...getWorkoutPlanForDay(getWeekday()).map((q) => ({ ...q, completed: false })),
+    ],
     habits: DEFAULT_HABITS,
     spending: [],
     totalSpent: 0,

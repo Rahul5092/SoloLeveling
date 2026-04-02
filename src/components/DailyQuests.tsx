@@ -1,4 +1,4 @@
-import { PlayerState, addXP, saveState, getCategoryIcon } from '@/lib/gameState';
+import { PlayerState, addXP, saveState, getCategoryIcon, getWorkoutPlanForDay, getWeekday } from '@/lib/gameState';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
 
@@ -37,6 +37,23 @@ export default function DailyQuests({ player, setPlayer }: Props) {
 
   const completed = player.quests.filter(q => q.completed).length;
   const total = player.quests.length;
+  const today = getWeekday();
+  const todayWorkout = getWorkoutPlanForDay(today);
+
+  const addTodayWorkoutToQuests = () => {
+    const existingQuestIds = new Set(player.quests.map(q => q.id));
+    const workoutQuests = todayWorkout
+      .filter(q => !existingQuestIds.has(q.id))
+      .map(q => ({ ...q, completed: false }));
+
+    if (workoutQuests.length === 0) {
+      return;
+    }
+
+    const updated = { ...player, quests: [...player.quests, ...workoutQuests] };
+    saveState(updated);
+    setPlayer(updated);
+  };
 
   return (
     <motion.div
@@ -53,6 +70,24 @@ export default function DailyQuests({ player, setPlayer }: Props) {
           {completed}/{total}
         </span>
       </div>
+
+      <div className="mb-2 p-2 rounded border border-secondary/40 bg-secondary/20">
+        <div className="flex items-center justify-between mb-1">
+          <span className="font-display text-xs text-primary tracking-wider">TODAY’S WORKOUT ({today})</span>
+          <button
+            onClick={addTodayWorkoutToQuests}
+            className="text-[10px] font-bold uppercase tracking-widest text-primary hover:text-glow-warning"
+          >
+            + Add to quests
+          </button>
+        </div>
+        <ul className="text-[11px] space-y-0.5 text-muted-foreground">
+          {todayWorkout.map((item) => (
+            <li key={item.id}>• {item.title}</li>
+          ))}
+        </ul>
+      </div>
+
       <div className="space-y-1.5 max-h-64 overflow-y-auto pr-1">
         {player.quests.map((quest) => (
           <div key={quest.id} className="relative">
